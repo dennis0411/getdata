@@ -15,7 +15,7 @@ import requests
 import time
 import os
 
-fredapikey = '4cc5831f733fba2032b5efe47e2132cb'
+
 
 # 貼上連結
 url = 'https://www.slickcharts.com/sp500'
@@ -166,19 +166,14 @@ if __name__ == '__main__':
     ticker = 'AAPL'
     startdate = '2018-01-04'
     enddate = '2022-02-18'
-    # interval = '1d'  # valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
-    # history = historyprice(ticker, startdate, enddate, interval)
-    # plotprice(history, ticker)
+    interval = '1d'
+    print(historyprice(ticker, startdate, enddate, interval))
 
-    print(tickernews(ticker))
-    print(tickerrec(ticker, startdate, enddate))
 
-    # tickernews['providerPublishTime'].apply(lambda x : datetime.datetime.fromtimestamp(x) in tickernews['providerPublishTime'])
+    # print(tickernews(ticker))
+    # print(tickerrec(ticker, startdate, enddate))
+    # print(yf.Ticker(ticker).financials)
 
-    # tickernews[['providerPublishTime']] = lambda x : datetime.datetime.fromtimestamp(x) in tickernews[['providerPublishTime']]
-    # print(tickernews['PublishTime'])
-
-    # print(datetime.datetime.fromtimestamp(1645412509))
 
     # stock_list = downloadstocklist_from_slickcharts(url, headers)
     # stk_info_df = download_marketdata(stock_list[0:3])
