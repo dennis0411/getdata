@@ -42,16 +42,25 @@ def downloadfreddata(api_key):
 
 def fred_data_download(index_dict, url):
     fred_data = pd.DataFrame()
-    describe = []
+    describes = []
+    error_list = []
     for signal in index_dict.keys():
-        newsignal = pd.DataFrame(fred.get_series(index_dict.get(signal)), columns=[signal])
-        fred_data = pd.concat([fred_data, newsignal], axis=1)
-        re = requests.get(url + index_dict.get(signal)).text
-        soup = BeautifulSoup(re, 'html.parser')
-        series_notes = soup.find(class_='series-notes').get_text()
-        describe.append((signal, series_notes))
-    describes = pd.DataFrame(describe, columns=['signal', 'describe']).set_index('signal')
-    return fred_data, describes
+        try:
+            newsignal = pd.DataFrame(fred.get_series(index_dict.get(signal)), columns=[signal])
+            fred_data = pd.concat([fred_data, newsignal], axis=1)
+        except:
+            error_list.append(('data error:', signal))
+            continue
+        try:
+            re = requests.get(url + index_dict.get(signal)).text
+            soup = BeautifulSoup(re, 'html.parser')
+            series_notes = soup.find(class_='series-notes').get_text()
+            describes.append((signal, series_notes))
+        except:
+            error_list.append(('describes error:', signal))
+            continue
+    data_describes = pd.DataFrame(describes, columns=['signal', 'describe']).set_index('signal')
+    return fred_data, data_describes, error_list
 
 
 if __name__ == '__main__':
@@ -72,9 +81,10 @@ if __name__ == '__main__':
                   'GDP': 'GDP',
                   'Consumer Price Index: Used Cars and Trucks in U.S.': 'CUSR0000SETA02',
                   'Personal Consumption Expenditures': 'PCE',
-                  'Inflation Expectation': 'MICH',
+                  'Inflation Expectation': 'MICH'
                   }
 
-    data, describes = fred_data_download(index_dict, url)
+    data, describe, error_list = fred_data_download(index_dict, url)
     print(data)
-    print(describes)
+    print(describe)
+    print('error_list:', error_list)
