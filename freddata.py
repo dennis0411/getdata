@@ -52,14 +52,15 @@ def fred_data_download(index_dict, url):
             error_list.append(('data error:', signal))
             continue
         try:
-            re = requests.get(url + index_dict.get(signal)).text
+            link = url + index_dict.get(signal)
+            re = requests.get(link).text
             soup = BeautifulSoup(re, 'html.parser')
-            series_notes = soup.find(class_='series-notes').get_text()
-            describes.append((signal, series_notes))
+            describe = soup.find(class_='series-notes').get_text()
+            describes.append((signal, describe, link))
         except:
             error_list.append(('describes error:', signal))
             continue
-    data_describes = pd.DataFrame(describes, columns=['signal', 'describe']).set_index('signal')
+    data_describes = pd.DataFrame(describes, columns=['signal', 'describe', 'link']).set_index('signal')
     return fred_data, data_describes, error_list
 
 
