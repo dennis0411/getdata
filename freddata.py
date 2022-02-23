@@ -40,38 +40,41 @@ def downloadfreddata(api_key):
 # ToExcel(path, 'econ_data.xlsx', econ_data, 'fred')
 
 
-def financial_signal(signal_dict, url):
-    findex = pd.DataFrame()
+def fred_data_download(index_dict, url):
+    fred_data = pd.DataFrame()
     describe = []
-    for signal in signal_dict.keys():
-        newsignal = pd.DataFrame(fred.get_series(signal_dict.get(signal)), columns=[signal])
-        findex = pd.concat([findex, newsignal], axis=1)
-        re = requests.get(url + signal_dict.get(signal)).text
+    for signal in index_dict.keys():
+        newsignal = pd.DataFrame(fred.get_series(index_dict.get(signal)), columns=[signal])
+        fred_data = pd.concat([fred_data, newsignal], axis=1)
+        re = requests.get(url + index_dict.get(signal)).text
         soup = BeautifulSoup(re, 'html.parser')
         series_notes = soup.find(class_='series-notes').get_text()
         describe.append((signal, series_notes))
     describes = pd.DataFrame(describe, columns=['signal', 'describe']).set_index('signal')
-    return findex, describes
+    return fred_data, describes
 
-
-# print(Findex.columns)
-# print(Findex.tail(30))
 
 if __name__ == '__main__':
     url = 'https://fred.stlouisfed.org/series/'
-    signal_dict = {'SP500': 'SP500',
-                   'VIX': 'VIXCLS',
-                   'St. Louis Fed Financial Stress Index': 'STLFSI3',
-                   'Federal Funds Effective Rate': 'DFF',
-                   '10y minus 3m': 'T10Y3M',
-                   'Economic Policy Uncertainty Index for United States': 'USEPUINDXD',
-                   'Equity Market-related Economic Uncertainty Index': 'WLEMUINDXD',
-                   'Equity Market Volatility Tracker: Overall': 'EMVOVERALLEMV',
-                   'Chicago Fed National Financial Conditions': 'NFCI',
-                   'Inflation Risk Premium': 'TENEXPCHAINFRISPRE',
-                   'Real Risk Premium': 'TENEXPCHAREARISPRE',
-                   }
+    index_dict = {'SP500': 'SP500',
+                  'VIX': 'VIXCLS',
+                  'St. Louis Fed Financial Stress Index': 'STLFSI3',
+                  'Federal Funds Effective Rate': 'DFF',
+                  '10y minus 3m': 'T10Y3M',
+                  'Economic Policy Uncertainty Index for United States': 'USEPUINDXD',
+                  'Equity Market-related Economic Uncertainty Index': 'WLEMUINDXD',
+                  'Equity Market Volatility Tracker: Overall': 'EMVOVERALLEMV',
+                  'Chicago Fed National Financial Conditions': 'NFCI',
+                  'Inflation Risk Premium': 'TENEXPCHAINFRISPRE',
+                  'Real Risk Premium': 'TENEXPCHAREARISPRE',
+                  'Consumer Sentiment': 'UMCSENT',
+                  'Consumer Opinion Surveys: Confidence Indicators': 'CSCICP03USM665S',
+                  'GDP': 'GDP',
+                  'Consumer Price Index: Used Cars and Trucks in U.S.': 'CUSR0000SETA02',
+                  'Personal Consumption Expenditures': 'PCE',
+                  'Inflation Expectation': 'MICH',
+                  }
 
-    findex, describes = financial_signal(signal_dict, url)
-    print(findex)
+    data, describes = fred_data_download(index_dict, url)
+    print(data)
     print(describes)
