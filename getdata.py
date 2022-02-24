@@ -1,5 +1,4 @@
 import datetime
-
 import yfinance as yf  # Yahoo Finance python API
 import fredapi  # FRED python API
 import pytrends  # Google Trends python API
@@ -13,9 +12,6 @@ from matplotlib.dates import DateFormatter
 import datetime as dt
 import requests
 import time
-import os
-
-
 
 # 貼上連結
 url = 'https://www.slickcharts.com/sp500'
@@ -125,13 +121,6 @@ def download_marketdata(stock_list):
     return stock_info_df
 
 
-def ToExcel(path, excelname, df1, sheetname1):
-    path = os.path.join(path, excelname)  # 設定路徑及檔名
-    writer = pd.ExcelWriter(path, engine='openpyxl')  # 指定引擎openpyxl
-    df1.to_excel(writer, sheet_name=sheetname1)  # 存到指定的sheet
-    writer.save()  # 存檔生成excel檔案
-
-
 def historyprice(ticker, startdate, enddate, interval):
     symbol = yf.Ticker(ticker)
     history = symbol.history(period="max"  # valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
@@ -169,11 +158,9 @@ if __name__ == '__main__':
     interval = '1d'
     print(historyprice(ticker, startdate, enddate, interval))
 
-
     # print(tickernews(ticker))
     # print(tickerrec(ticker, startdate, enddate))
     # print(yf.Ticker(ticker).financials)
-
 
     # stock_list = downloadstocklist_from_slickcharts(url, headers)
     # stk_info_df = download_marketdata(stock_list[0:3])

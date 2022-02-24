@@ -4,7 +4,6 @@ import numpy as np
 
 
 class portfolio_performance():
-
     def __init__(self, portfolio, period):
         self.portfolio = portfolio
         self.start = period.get('start')
@@ -12,7 +11,6 @@ class portfolio_performance():
         self.interval = period.get('interval')
         self.investamount = 1000000
         self.stklist = list(self.portfolio.keys())[:-1]
-
 
     def downloadprice(self):
         history = yf.download(self.stklist, interval=self.interval, start=self.start, end=self.end)
@@ -47,13 +45,9 @@ class portfolio_performance():
         mdd = dd.min()
         end = dd.idxmin()
         start = r.loc[:end].idxmax()
-        days = end-start
+        days = end - start
         print(f'最大跌幅:{mdd:.1%}, 起跌日:{start:%Y-%m-%d}, 止跌日:{end:%Y-%m-%d}, 下跌時間:{days}')
         return mdd, start, end, days
-
-
-
-
 
 
 if __name__ == '__main__':
