@@ -29,6 +29,8 @@ def downloadstocklist_from_slickcharts(url, headers):
 
 '''
 取得各種資料
+yf.Ticker(ticker)
+
 # get stock info
 msft.info
 
