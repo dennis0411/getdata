@@ -11,14 +11,15 @@ portfolio = {'spy': 0.5,
              }
 
 start_date = '2010-01-01'
+end_date = '2022-03-24'
 
 benchmark_index = "spy"
 
 portfolio_list = list(portfolio.keys())
 portfolio_weight = list(portfolio.values())
 
-prices = ffn.get(portfolio_list, start=start_date)
-benchmark_rebase = ffn.get(benchmark_index, start=start_date).rebase()
+prices = ffn.get(portfolio_list, start=start_date, end=end_date)
+benchmark_rebase = ffn.get(benchmark_index, start=start_date, end=end_date).rebase()
 
 rebase = prices.rebase()
 
