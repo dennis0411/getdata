@@ -8,7 +8,6 @@ from finvizfinance.insider import Insider
 from finvizfinance.news import News
 from finvizfinance.screener.overview import Overview
 from pymongo import MongoClient
-import pymongo
 
 
 '''
@@ -26,11 +25,19 @@ from warnings import simplefilter
 
 simplefilter(action='ignore', category=FutureWarning)
 
-# mongodb connection
-CONNECTION_STRING = "mongodb+srv://dennis0411:0939856005@getdata.dzc20.mongodb.net/getdata?retryWrites=true&w=majority"
-client = MongoClient(CONNECTION_STRING)
-db = client.getdata
-collection_name = db.fundament
+
+
+df = pd.read_csv('foverview')
+tickers = df.Ticker[:]
+
+start = time.time()
+
+for ticker in tickers:
+    data = {ticker: finvizfinance(ticker).ticker_fundament()}
+
+
+end = time.time()
+print(f'total time: {end - start} seconds')
 
 # Quote
 # stock = finvizfinance('tsla')
@@ -68,26 +75,4 @@ collection_name = db.fundament
 # df = foverview.screener_view()
 # print(df)
 
-# download ticker +mid
-# foverview = Overview()
-# filters_dict={'Market Cap.': '+Mid (over $2bln)'}
-# foverview.set_filter(filters_dict=filters_dict)
-# df = foverview.screener_view()
-# df.to_csv('foverview')
 
-df = pd.read_csv('foverview')
-collection_name.insert_many(df)
-
-# tickers = df.Ticker[:]
-#
-# start = time.time()
-# data = []
-# for ticker in tickers:
-#     data.append(finvizfinance(ticker).ticker_fundament())
-#     print(ticker, "append...")
-#
-# df1 = pd.DataFrame(data)
-# df1['Tickers'] = tickers
-# df1.to_csv('finviz_data')
-# end = time.time()
-# print(f'total time: {end - start} seconds')
