@@ -27,23 +27,17 @@ with open(path) as f:
     account = word[0]
     password = word[1]
 
-
 # mongodb connection
 CONNECTION_STRING = f"mongodb+srv://{account}:{password}@getdata.dzc20.mongodb.net/getdata?retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING, tls=True, tlsAllowInvalidCertificates=True)
 db = client.getdata
 collection = db.fundament
-collection.delete_many({})
 
-df = pd.read_csv('foverview')
-tickers = df.Ticker[:]
+result = collection.find_one({'Ticker': 'AAPL'})
+print(result)
 
-start = time.time()
+result2 = collection.find(filter={'Sector': 'Technology'})
+for i in result2:
+    print(i)
 
-for ticker in tickers:
-    data = finvizfinance(ticker).ticker_fundament()
-    data['Ticker'] = ticker
-    collection.insert_one(data)
 
-end = time.time()
-print(f'total time: {end - start} seconds')
