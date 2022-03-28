@@ -1,5 +1,4 @@
 import pprint
-import threading
 import time
 import pandas as pd
 import numpy as np
@@ -8,11 +7,7 @@ from finvizfinance.insider import Insider
 from finvizfinance.news import News
 from finvizfinance.screener.overview import Overview
 from pymongo import MongoClient
-import os
-
-'''
-source : https://pypi.org/project/finvizfinance/
-'''
+from warnings import simplefilter
 
 # 列印用
 desired_width = 320
@@ -21,7 +16,7 @@ np.set_printoptions(linewidth=desired_width)
 pd.set_option('display.max_columns', 10)
 
 # 取消 future warning
-from warnings import simplefilter
+
 
 simplefilter(action='ignore', category=FutureWarning)
 

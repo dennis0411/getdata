@@ -1,7 +1,8 @@
 from dash import dcc
 from dash import html
 import plotly.graph_objs as go
-
+from pymongo import MongoClient
+from warnings import simplefilter
 import numpy as np
 from finvizfinance.quote import finvizfinance
 from finvizfinance.insider import Insider
@@ -12,6 +13,25 @@ from utils import Header, make_dash_table
 
 import pandas as pd
 import pathlib
+
+# 列印用
+desired_width = 320
+pd.set_option('display.width', desired_width)
+np.set_printoptions(linewidth=desired_width)
+pd.set_option('display.max_columns', 10)
+
+# 取消 future warning
+
+
+simplefilter(action='ignore', category=FutureWarning)
+
+# 引入密碼
+path = "mongodb_password"
+with open(path) as f:
+    account = f.readline().split(',')[0]
+    password = f.readline().split(',')[1]
+
+
 
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
