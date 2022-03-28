@@ -1,12 +1,15 @@
 from dash import dcc
 from dash import html
 import plotly.graph_objs as go
+import plotly.express as px
+
 
 import numpy as np
 from finvizfinance.quote import finvizfinance
 from finvizfinance.insider import Insider
 from finvizfinance.news import News
 from finvizfinance.screener.overview import Overview
+import ffn
 
 from utils import Header, make_dash_table
 
@@ -23,7 +26,12 @@ df_price_perf = pd.read_csv(DATA_PATH.joinpath("df_price_perf.csv"))
 
 ticker = 'aapl'
 stock_description = finvizfinance(ticker).ticker_description()
-print(stock_description)
+start_date = '2010-01-01'
+end_date = '2022-03-24'
+benchmark_index = "spy"
+portfolio_list = list([ticker, benchmark_index])
+prices = ffn.get(portfolio_list, start=start_date, end=end_date)
+rebase = prices.rebase()
 
 def create_layout(app):
     # Page layouts
@@ -175,43 +183,16 @@ def create_layout(app):
                             html.Div(
                                 [
                                     html.H6(
-                                        "Hypothetical growth of $10,000",
+                                        "Comparison with SPY",
                                         className="subtitle padded",
                                     ),
                                     dcc.Graph(
                                         id="graph-2",
                                         figure={
                                             "data": [
-                                                go.Scatter(
-                                                    x=[
-                                                        "2008",
-                                                        "2009",
-                                                        "2010",
-                                                        "2011",
-                                                        "2012",
-                                                        "2013",
-                                                        "2014",
-                                                        "2015",
-                                                        "2016",
-                                                        "2017",
-                                                        "2018",
-                                                    ],
-                                                    y=[
-                                                        "10000",
-                                                        "7500",
-                                                        "9000",
-                                                        "10000",
-                                                        "10500",
-                                                        "11000",
-                                                        "14000",
-                                                        "18000",
-                                                        "19000",
-                                                        "20500",
-                                                        "24000",
-                                                    ],
-                                                    line={"color": "#97151c"},
-                                                    mode="lines",
-                                                    name="Calibre Index Fund Inv",
+                                                px.line(
+                                                    x=rebase.index,
+                                                    y=rebase.values,
                                                 )
                                             ],
                                             "layout": go.Layout(

@@ -10,6 +10,7 @@ from pages import (
     feesMins,
     distributions,
     newsReviews,
+    test,
 )
 
 app = dash.Dash(
@@ -27,6 +28,8 @@ app.layout = html.Div(
 # Update page
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def display_page(pathname):
+    if pathname == "/dash-financial-report/test":
+        return test.create_layout(app)
     if pathname == "/dash-financial-report/price-performance":
         return pricePerformance.create_layout(app)
     elif pathname == "/dash-financial-report/portfolio-management":
@@ -45,6 +48,7 @@ def display_page(pathname):
             feesMins.create_layout(app),
             distributions.create_layout(app),
             newsReviews.create_layout(app),
+            test.create_layout(app),
         )
     else:
         return overview.create_layout(app)
