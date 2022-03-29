@@ -33,16 +33,12 @@ client = MongoClient(CONNECTION_STRING, tls=True, tlsAllowInvalidCertificates=Tr
 db = client.getdata
 collection = db.fundament
 
-result = collection.find_one({'Ticker': 'AAPL'})
+result = collection.find_one({'Ticker': 'BABA'})
 print(result)
 
 result2 = collection.find(filter={'Sector': 'Technology'})
 for i in result2:
-    print(i)
-
-
-
-
+    print(i['Market Cap'])
 
 # CRUD Practice
 

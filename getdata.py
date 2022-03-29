@@ -160,15 +160,5 @@ if __name__ == '__main__':
     interval = '1d'
     print(historyprice(ticker, startdate, enddate, interval))
     print(tickerrec(ticker, startdate, enddate))
-    print(yf.Ticker(ticker).financials)
+    print(yf.Ticker(ticker).financials.index)
 
-    b = pd.DataFrame.to_dict(yf.Ticker(ticker).recommendations)
-    c = pd.DataFrame.from_dict(b)
-
-    print(b)
-    print(c)
-
-    # print(tickernews(ticker))
-    # stock_list = downloadstocklist_from_slickcharts(url, headers)
-    # stk_info_df = download_marketdata(stock_list[0:3])
-    # ToExcel(os.getcwd(), 'marketdata.xlsx', stk_info_df, 'data')
