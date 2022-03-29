@@ -156,14 +156,19 @@ def plotprice(history, ticker):
 if __name__ == '__main__':
     ticker = 'AAPL'
     startdate = '2018-01-04'
-    enddate = '2022-02-18'
+    enddate = '2022-03-28'
     interval = '1d'
     print(historyprice(ticker, startdate, enddate, interval))
+    print(tickerrec(ticker, startdate, enddate))
+    print(yf.Ticker(ticker).financials)
+
+    b = pd.DataFrame.to_dict(yf.Ticker(ticker).recommendations)
+    c = pd.DataFrame.from_dict(b)
+
+    print(b)
+    print(c)
 
     # print(tickernews(ticker))
-    # print(tickerrec(ticker, startdate, enddate))
-    # print(yf.Ticker(ticker).financials)
-
     # stock_list = downloadstocklist_from_slickcharts(url, headers)
     # stk_info_df = download_marketdata(stock_list[0:3])
     # ToExcel(os.getcwd(), 'marketdata.xlsx', stk_info_df, 'data')
