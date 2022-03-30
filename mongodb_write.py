@@ -34,8 +34,6 @@ CONNECTION_STRING = f"mongodb+srv://{account}:{password}@getdata.dzc20.mongodb.n
 client = MongoClient(CONNECTION_STRING, tls=True, tlsAllowInvalidCertificates=True)
 
 
-
-
 def write_fundament(tickers):
     start = time.time()
     db = client.getdata
@@ -51,13 +49,18 @@ def write_fundament(tickers):
     print(f'write_fundament total time: {end - start} seconds')
 
 
-
+def write_ticker(tickers, name):
+    start = time.time()
+    db = client.getdata
+    collection = db.ticker
+    collection.insert_one({'name': name, 'date': datetime.date.today().strftime("%Y/%m/%d"), 'tickers': tickers})
+    end = time.time()
+    print(f'write_ticker total time: {end - start} seconds')
 
 
 if __name__ == "__main__":
-    df = pd.read_csv('foverview')
-    tickers = df.Ticker[:]
-    write_fundament(tickers)
-
-
-
+    df = pd.read_csv('Ticker.csv')
+    df = df.dropna()
+    tickers = list(df.Ticker[:])
+    write_ticker(tickers, 'US Stock')
+    # print(type(str(datetime.date.today())))
