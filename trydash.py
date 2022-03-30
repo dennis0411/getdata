@@ -174,7 +174,6 @@ if __name__ == "__main__":
         return fig
 
 
-
     # symbol = collection.find_one(filter={'Ticker': 'AAPL'})
     # data = collection.find(filter={'Sector': symbol['Sector']})
     #
