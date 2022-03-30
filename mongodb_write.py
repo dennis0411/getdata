@@ -1,3 +1,4 @@
+import json
 import pprint
 import time
 import pandas as pd
@@ -58,9 +59,21 @@ def write_ticker(tickers, name):
     print(f'write_ticker total time: {end - start} seconds')
 
 
+def write_bb(file):
+    start = time.time()
+    db = client.getdata
+    collection = db.bb
+    df = pd.read_csv(file)
+    data = json.loads(df.to_json())  # 到底為何要這樣處理??
+    collection.insert_one({'name': 'spx', 'date': datetime.date.today().strftime("%Y/%m/%d"), 'data': data})
+    end = time.time()
+    print(f'write_bb total time: {end - start} seconds')
+
+
 if __name__ == "__main__":
-    df = pd.read_csv('Ticker.csv')
-    df = df.dropna()
-    tickers = list(df.Ticker[:])
-    write_ticker(tickers, 'US Stock')
+    write_bb('data.csv')
+    # df = pd.read_csv('Ticker.csv')
+    # df = df.dropna()
+    # tickers = list(df.Ticker[:])
+    # write_ticker(tickers, 'US Stock')
     # print(type(str(datetime.date.today())))

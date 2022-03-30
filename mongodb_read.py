@@ -33,12 +33,22 @@ client = MongoClient(CONNECTION_STRING, tls=True, tlsAllowInvalidCertificates=Tr
 db = client.getdata
 collection = db.fundament
 
-result = collection.find_one({'Ticker': 'BABA'})
-print(result)
+result1 = collection.find_one({'Ticker': 'BABA'})
+print(result1)
 
 result2 = collection.find(filter={'Sector': 'Technology'})
 for i in result2:
     print(i['Market Cap'])
+
+db = client.getdata
+collection = db.bb
+result = collection.find_one({'name' : 'spx'})
+data = pd.DataFrame(result['data'])
+data = data.dropna()
+print(data)
+print(data.columns)
+
+
 
 # CRUD Practice
 
