@@ -18,7 +18,7 @@ benchmark_index = "spy"
 portfolio_list = list(portfolio.keys())
 portfolio_weight = list(portfolio.values())
 
-prices = ffn.get(portfolio_list, start=start_date, end=end_date)
+prices = ffn.get(portfolio_list, start=start_date, end=end_date).rebase()
 benchmark_rebase = ffn.get(benchmark_index, start=start_date, end=end_date).rebase()
 
 rebase = prices.rebase()

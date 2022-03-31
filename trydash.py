@@ -15,6 +15,8 @@ import yfinance as yf  # Yahoo Finance python API
 import pandas as pd
 import ffn
 import plotly.express as px
+import datetime
+from datetime import date
 
 # 列印用
 desired_width = 320
@@ -45,31 +47,9 @@ def write_recommendations(ticker, rec_startdate, enddate):
     return data_yf, data_fv
 
 
-# def write_financial(ticker, period='Y'):
-#     if period == "Y":
-#         data = yf.Ticker(ticker).financials.T.rename_axis('Date').reset_index()
-#     else:
-#         data = yf.Ticker(ticker).quarterly_financials.T.rename_axis('Date').reset_index()
-#     return data
-
-
-def write_rebase(ticker, benchmark, rebase_date, end_date):
-    portfolio_list = list([ticker, benchmark])
-    prices = ffn.get(portfolio_list, start=rebase_date, end=end_date)
-    rebase = prices.rebase()
-    return rebase
-
-
 def create_layout(app):
     pass
 
-
-# data
-ticker = 'aapl'
-rebase_date = '2010-01-01'
-rec_startdate = '2021-01-01'
-enddate = '2022-03-24'
-benchmark = "spy"
 
 if __name__ == "__main__":
     # mongodb connection
@@ -104,21 +84,29 @@ if __name__ == "__main__":
         dcc.Graph(id="graph"),
         dcc.Dropdown(
             id="dropdown2",
-            options=[' Market Cap ', ' P/E ', ' 總營收 ', ' EPS ', ' 營收成長率 ', ' EPS 成長率 ',
-                     ' 資產成長率 ', ' 淨利成長率 ', ' EBITDA 成長率 ', ' 投入資本報酬率 ', ' 自由現金流量成長率 ', ' 總資本支出成長率 ', ' P/B ', ' 現金比率 ',
-                     ' P/S ', ' 總投入資本營運報酬率 ', ' 普通股權益報酬率 '],
-            value=' P/E ',
+            options=['市值', 'P/E', '總營收', 'EPS', '營收成長率', 'EPS 成長率', '資產成長率', '淨利成長率', 'EBITDA 成長率', '投入資本報酬率',
+                     '自由現金流量成長率', '總資本支出成長率', 'P/B', '現金比率', 'P/S', '總投入資本營運報酬率', '普通股權益報酬率', '總債務/總資產', '毛利率', '獲利率'],
+            value='營收成長率',
             clearable=False,
         ),
         dcc.Dropdown(
             id="dropdown3",
-            options=[' Market Cap ', ' P/E ', ' 總營收 ', ' EPS ', ' 營收成長率 ', ' EPS 成長率 ',
-                     ' 資產成長率 ', ' 淨利成長率 ', ' EBITDA 成長率 ', ' 投入資本報酬率 ', ' 自由現金流量成長率 ', ' 總資本支出成長率 ', ' P/B ', ' 現金比率 ',
-                     ' P/S ', ' 總投入資本營運報酬率 ', ' 普通股權益報酬率 '],
-            value=' 營收成長率 ',
+            options=['市值', 'P/E', '總營收', 'EPS', '營收成長率', 'EPS 成長率', '資產成長率', '淨利成長率', 'EBITDA 成長率', '投入資本報酬率',
+                     '自由現金流量成長率', '總資本支出成長率', 'P/B', '現金比率', 'P/S', '總投入資本營運報酬率', '普通股權益報酬率', '總債務/總資產', '毛利率', '獲利率'],
+            value='EPS 成長率',
             clearable=False,
         ),
         dcc.Graph(id="graph2"),
+        dcc.DatePickerRange(
+            id='my-date-picker-range',
+            min_date_allowed=date(2014, 1, 1),
+            max_date_allowed=date.today() - datetime.timedelta(1),
+            initial_visible_month=date(2022, 1, 1),
+            start_date=date(2021, 1, 1),
+            end_date=date.today() - datetime.timedelta(1)
+        ),
+        html.Div(id='output-container-date-picker-range'),
+        dcc.Graph(id="graph3"),
     ])
 
 
@@ -135,40 +123,146 @@ if __name__ == "__main__":
 
     @app.callback(
         Output("graph2", "figure"),
+        Input("input", "value"),
         Input("dropdown2", "value"),
         Input("dropdown3", "value"))
-    def write_bubble(dropdown2, dropdown3):
+    def write_bubble(input, dropdown2, dropdown3):
         result = collection.find_one({'name': 'spx'})
         data = pd.DataFrame(result['data'])
-        data = data[[dropdown2, dropdown3, ' Ticker ', ' Market Cap ']]
-        data = data.dropna()
-        fig = px.scatter(data, x=dropdown2, y=dropdown3, hover_name=' Ticker ',
-                         size=' Market Cap ')
+        data = data[[dropdown2, dropdown3, 'Ticker', '市值', '總營收', '產業']].dropna()
+        data = data.drop(data[data[dropdown2] == 'nodata'].index)
+        data = data.drop(data[data[dropdown3] == 'nodata'].index)
+
+        # hover_text
+        hover_text = []
+        for index, row in data.iterrows():
+            hover_text.append((f"Ticker: {row['Ticker']}<br>" +
+                               f"市值 (mln): {row['市值'] / 1000000}<br>" +
+                               f"總營收 (mln): {row['總營收'] / 1000000}<br>" +
+                               f"產業: {row['產業']}<br>" +
+                               f"{dropdown2}: {row[dropdown2]}<br>" +
+                               f"{dropdown3}: {row[dropdown3]}<br>"))
+        data['hover_text'] = hover_text
+
+        # size
+        size = data['市值']
+        sizeref = 2. * max(size) / (100 ** 2)
+
+        # data
+        sector = data[data['Ticker'] == input]['產業'].values.item()
+        data_sector = data[data['產業'] == sector]
+        data_ticker = data[data['Ticker'] == input]
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=data[dropdown2],
+                                 y=data[dropdown3],
+                                 text=data['hover_text'],
+                                 name='標普五百',
+                                 mode='markers',
+                                 marker=dict(size=data['市值'],
+                                             color='#CCCCCC',
+                                             sizemode='area',
+                                             sizeref=sizeref
+                                             )
+                                 )
+                      )
+        fig.add_trace(go.Scatter(x=data_sector[dropdown2],
+                                 y=data_sector[dropdown3],
+                                 text=data_sector['hover_text'],
+                                 name=f'{sector}',
+                                 mode='markers',
+                                 marker=dict(size=data_sector['市值'],
+                                             color='#38A67C',
+                                             sizemode='area',
+                                             sizeref=sizeref
+                                             )
+                                 )
+                      )
+        fig.add_trace(go.Scatter(x=data_ticker[dropdown2],
+                                 y=data_ticker[dropdown3],
+                                 name=input,
+                                 text=data_ticker['hover_text'],
+                                 mode='markers',
+                                 marker=dict(size=data_ticker['市值'],
+                                             color='#006FA6',
+                                             sizemode='area',
+                                             sizeref=sizeref
+                                             )
+                                 )
+                      )
+
+        fig.update_layout(title=f'{dropdown2} vs {dropdown3}',
+                          xaxis=dict(title=f'{dropdown2}',
+                                     gridcolor='white',
+                                     gridwidth=2,
+                                     ),
+                          yaxis=dict(title=f'{dropdown3}',
+                                     gridcolor='white',
+                                     gridwidth=2,
+                                     ),
+                          paper_bgcolor='rgb(243, 243, 243)',
+                          plot_bgcolor='rgb(243, 243, 243)',
+                          )
         fig.update_layout(autotypenumbers='convert types')
 
         return fig
 
 
-    # symbol = collection.find_one(filter={'Ticker': 'AAPL'})
-    # data = collection.find(filter={'Sector': symbol['Sector']})
-    #
-    # data1 = []
-    # data2 = []
-    # data3 = []
-    # for a in data:
-    #     data1.append(a[dropdown2])
-    #     data2.append(a[dropdown3])
-    #     data3.append(a['Ticker'])
-    # result = pd.DataFrame(zip(data1, data2, data3), columns=[dropdown2, dropdown3, 'Ticker'])
-    # result.sort_values(by=dropdown2)
-    #
-    #
-    # fig = px.scatter(result, x=result[dropdown2], y=result[dropdown3], hover_name='Ticker', log_x=True)
-    # fig.update_layout(autotypenumbers='convert types')
-    #
-    # app.layout = html.Div([
-    #     dcc.Graph(figure=fig)
-    # ])
+    @app.callback(
+        Output("graph3", "figure"),
+        Input("input", "value"),
+        Input('my-date-picker-range', 'start_date'),
+        Input('my-date-picker-range', 'end_date'))
+    def write_performance(input, start_date, end_date):
+        data = ffn.get([input, 'spy'], start=start_date, end=end_date).rebase()
+        fig = go.Figure()
+        hover_input = []
+        for index, row in data.iterrows():
+            hover_input.append((f"{index.strftime('%Y-%m-%d')}<br>" +
+                                f"{input}<br>" +
+                                f"{round(row[str(input).lower()],2)}<br>"
+                                ))
+        fig.add_trace(go.Scatter(x=data.index,
+                                 y=data[str(input).lower()],
+                                 mode='lines',
+                                 name=input,
+                                 text=hover_input,
+                                 line=dict(color="#006FA6",
+                                           width=2)
+                                 )
+                      )
+
+        hover_spy = []
+        for index, row in data.iterrows():
+            hover_spy.append((f"{index.strftime('%Y-%m-%d')}<br>" +
+                              f"SPY<br>" +
+                              f"{round(row['spy'],2)}<br>"
+                              ))
+        fig.add_trace(go.Scatter(x=data.index,
+                                 y=data['spy'],
+                                 mode='lines',
+                                 name='SPY',
+                                 text=hover_spy,
+                                 line=dict(color="#B0B0B0",
+                                           width=2)
+                                 )
+                      )
+        fig.update_xaxes(
+            rangeslider_visible=False,
+            title=f'{input} vs spy'
+        )
+        fig.update_layout(title=f'{input} vs spy base on $100',
+                          xaxis=dict(gridcolor='white',
+                                     gridwidth=2,
+                                     ),
+                          yaxis=dict(gridcolor='white',
+                                     gridwidth=2,
+                                     ),
+                          paper_bgcolor='rgb(243, 243, 243)',
+                          plot_bgcolor='rgb(243, 243, 243)',
+                          )
+        return fig
+
 
     # run server
     app.run_server(debug=True)

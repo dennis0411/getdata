@@ -1,3 +1,5 @@
+import datetime
+
 import dash
 from dash import dcc
 from dash import html
@@ -15,6 +17,7 @@ import yfinance as yf  # Yahoo Finance python API
 import pandas as pd
 import ffn
 import plotly.express as px
+from datetime import date
 
 # 列印用
 desired_width = 320
@@ -32,36 +35,14 @@ with open(path) as f:
     account = word[0]
     password = word[1]
 
-
-
-
-
 if __name__ == "__main__":
     # mongodb connection
     CONNECTION_STRING = f"mongodb+srv://{account}:{password}@getdata.dzc20.mongodb.net/getdata?retryWrites=true&w=majority"
     client = MongoClient(CONNECTION_STRING, tls=True, tlsAllowInvalidCertificates=True)
     db = client.getdata
     collection = db.bb
-    symbol = collection.find_one(filter={'Ticker': 'AAPL'})
-    data = collection.find(filter={'Sector': symbol['Sector']})
-
-    data1 = []
-    data2 = []
-    data3 = []
-    for a in data:
-        data1.append(a[dropdown2])
-        data2.append(a[dropdown3])
-        data3.append(a['Ticker'])
-    result = pd.DataFrame(zip(data1, data2, data3), columns=[dropdown2, dropdown3, 'Ticker'])
-    result.sort_values(by=dropdown2)
+    data = ffn.get(['aapl', 'spy'], start="2020-01-01", end='2022-03-30')
+    # print(data)
+    print(date.today()-datetime.timedelta(1))
 
 
-    fig = px.scatter(result, x=result[dropdown2], y=result[dropdown3], hover_name='Ticker', log_x=True)
-    fig.update_layout(autotypenumbers='convert types')
-
-    app.layout = html.Div([
-        dcc.Graph(figure=fig)
-    ])
-
-    # run server
-    app.run_server(debug=True)

@@ -30,23 +30,24 @@ with open(path) as f:
 # mongodb connection
 CONNECTION_STRING = f"mongodb+srv://{account}:{password}@getdata.dzc20.mongodb.net/getdata?retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING, tls=True, tlsAllowInvalidCertificates=True)
-db = client.getdata
-collection = db.fundament
 
-result1 = collection.find_one({'Ticker': 'BABA'})
-print(result1)
 
-result2 = collection.find(filter={'Sector': 'Technology'})
-for i in result2:
-    print(i['Market Cap'])
+# db = client.getdata
+# collection = db.fundament
+# result1 = collection.find_one({'Ticker': 'BABA'})
+# print(result1)
+# result2 = collection.find(filter={'Sector': 'Technology'})
+# for i in result2:
+#     print(i['Market Cap'])
 
 db = client.getdata
 collection = db.bb
 result = collection.find_one({'name' : 'spx'})
 data = pd.DataFrame(result['data'])
 data = data.dropna()
+data = data[['總資本支出成長率', 'P/B', '現金比率', 'P/S', '總投入資本營運報酬率', '普通股權益報酬率', '總債務/總資產', '毛利率', '獲利率']].tail(30)
+data = data.drop(data[data['總資本支出成長率'] == "nodata"].index)
 print(data)
-print(data.columns)
 
 
 
