@@ -17,6 +17,7 @@ import ffn
 import plotly.express as px
 import datetime
 from datetime import date
+from plotly.subplots import make_subplots
 
 # 列印用
 desired_width = 320
@@ -68,19 +69,6 @@ if __name__ == "__main__":
             value='AAPL',
             placeholder="",
         ),
-        dcc.Dropdown(
-            id="dropdown",
-            options=['Income Before Tax', 'Net Income',
-                     'Selling General Administrative', 'Gross Profit', 'Ebit',
-                     'Operating Income', 'Other Operating Expenses', 'Interest Expense',
-                     'Extraordinary Items', 'Non Recurring', 'Other Items',
-                     'Income Tax Expense', 'Total Revenue', 'Total Operating Expenses',
-                     'Cost Of Revenue', 'Total Other Income Expense Net',
-                     'Discontinued Operations', 'Net Income From Continuing Ops',
-                     'Net Income Applicable To Common Shares'],
-            value='Total Revenue',
-            clearable=False,
-        ),
         dcc.Graph(id="graph"),
         dcc.Dropdown(
             id="dropdown2",
@@ -112,11 +100,36 @@ if __name__ == "__main__":
 
     @app.callback(
         Output("graph", "figure"),
-        Input("input", "value"),
-        Input("dropdown", "value"))
-    def write_financial(input, dropdown):
+        Input("input", "value"))
+    def write_financial(input):
         data = yf.Ticker(input).financials.T.rename_axis('Date').reset_index()
-        fig = px.bar(data, x='Date', y=dropdown, title=f"{input} Financials")
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=data['Date'],
+                             y=data['Total Revenue'],
+                             name='營收',
+                             marker=dict(color='#38A67C',
+                                         )))
+        fig.add_trace(go.Bar(x=data['Date'],
+                             y=data['Gross Profit'],
+                             name='毛利',
+                             marker=dict(color='#006FA6',
+                                         )))
+        fig.add_trace(go.Bar(x=data['Date'],
+                             y=data['Net Income'],
+                             name='淨利',
+                             marker=dict(color='#CCCCCC',
+                                         )))
+        fig.update_layout(title=f'{input} financial',
+                          xaxis=dict(gridcolor='white',
+                                     gridwidth=2,
+                                     ),
+                          yaxis=dict(gridcolor='white',
+                                     gridwidth=2,
+                                     ),
+                          paper_bgcolor='rgb(243, 243, 243)',
+                          plot_bgcolor='rgb(243, 243, 243)',
+                          )
+        fig.update_layout(autotypenumbers='convert types')
 
         return fig
 
@@ -136,7 +149,7 @@ if __name__ == "__main__":
         # hover_text
         hover_text = []
         for index, row in data.iterrows():
-            hover_text.append((f"Ticker: {row['Ticker']}<br>" +
+            hover_text.append((f"{row['Ticker']}<br>" +
                                f"市值 (mln): {row['市值'] / 1000000}<br>" +
                                f"總營收 (mln): {row['總營收'] / 1000000}<br>" +
                                f"產業: {row['產業']}<br>" +
@@ -220,7 +233,7 @@ if __name__ == "__main__":
         for index, row in data.iterrows():
             hover_input.append((f"{index.strftime('%Y-%m-%d')}<br>" +
                                 f"{input}<br>" +
-                                f"{round(row[str(input).lower()],2)}<br>"
+                                f"{round(row[str(input).lower()], 2)}<br>"
                                 ))
         fig.add_trace(go.Scatter(x=data.index,
                                  y=data[str(input).lower()],
@@ -236,7 +249,7 @@ if __name__ == "__main__":
         for index, row in data.iterrows():
             hover_spy.append((f"{index.strftime('%Y-%m-%d')}<br>" +
                               f"SPY<br>" +
-                              f"{round(row['spy'],2)}<br>"
+                              f"{round(row['spy'], 2)}<br>"
                               ))
         fig.add_trace(go.Scatter(x=data.index,
                                  y=data['spy'],
