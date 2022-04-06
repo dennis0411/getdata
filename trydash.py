@@ -70,6 +70,7 @@ if __name__ == "__main__":
             placeholder="",
         ),
         dcc.Graph(id="graph"),
+        dcc.Graph(id="graph1"),
         dcc.Dropdown(
             id="dropdown2",
             options=['市值', 'P/E', '總營收', 'EPS', '營收成長率', 'EPS 成長率', '資產成長率', '淨利成長率', 'EBITDA 成長率', '投入資本報酬率',
@@ -130,6 +131,40 @@ if __name__ == "__main__":
                           plot_bgcolor='rgb(243, 243, 243)',
                           )
         fig.update_layout(autotypenumbers='convert types')
+
+        return fig
+
+
+    @app.callback(
+        Output("graph1", "figure"),
+        Input("input", "value"))
+    def subplot_financial(input):
+        data = yf.Ticker(input).financials.T.rename_axis('Date').reset_index()
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Table(
+                header=dict(
+                    values=["Date",
+                            "Total Revenue",
+                            "Gross Profit",
+                            "Net Income"],
+                    font=dict(size=12),
+                    align="left"
+                ),
+                cells=dict(
+                    values=[data["Date"],
+                            data["Total Revenue"],
+                            data["Gross Profit"],
+                            data["Net Income"]],
+                    align="left")
+            )
+        )
+        fig.update_layout(
+            height=600,
+            showlegend=False,
+            title_text=f'{input} Financial Overview',
+        )
 
         return fig
 
