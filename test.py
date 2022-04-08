@@ -1,74 +1,100 @@
-import datetime
-from dash import Dash, html, Input, Output, dash_table
-from dash import dcc
-from dash import html
-import plotly.graph_objs as go
-from dash.dependencies import Input, Output
-from pymongo import MongoClient
-from utils import Header, make_dash_table
-from warnings import simplefilter
-import numpy as np
-from finvizfinance.quote import finvizfinance
-from finvizfinance.insider import Insider
-from finvizfinance.news import News
-from finvizfinance.screener.overview import Overview
-import yfinance as yf  # Yahoo Finance python API
-import pandas as pd
-import ffn
-import plotly.express as px
-from datetime import date
+import dash
+import dash_bootstrap_components as dbc
+from dash import Input, Output, dcc, html
 
-# 列印用
-desired_width = 320
-pd.set_option('display.width', desired_width)
-np.set_printoptions(linewidth=desired_width)
-pd.set_option('display.max_columns', 10)
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-# 取消 future warning
-simplefilter(action='ignore', category=FutureWarning)
+# the style arguments for the sidebar. We use position:fixed and a fixed width
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "left": 0,
+    "bottom": 0,
+    "width": "16rem",
+    "padding": "2rem 1rem",
+    "background-color": "#f8f9fa",
+}
 
-# 引入密碼
-path = "mongodb_password"
-with open(path) as f:
-    word = f.readline().split(',')
-    account = word[0]
-    password = word[1]
+# the styles for the main content position it to the right of the sidebar and
+# add some padding.
+CONTENT_STYLE = {
+    "margin-left": "18rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1rem",
+}
+
+sidebar = html.Div(
+    [
+        html.H2("Sidebar", className="display-4"),
+        html.Hr(),
+        html.P(
+            "A simple sidebar layout with navigation links", className="lead"
+        ),
+        dbc.Nav(
+            [
+                dbc.NavLink("Home", href="/", active="exact"),
+                dbc.NavLink("Page 1", href="/page-1", active="exact"),
+                dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                dbc.NavLink("Page 3", href="/page-3", active="exact"),
+            ],
+            vertical=True,
+            pills=True,
+        ),
+    ],
+    style=SIDEBAR_STYLE,
+)
+
+row = html.Div(
+    [
+        dbc.Row(
+            dbc.Col(
+                html.Div("A single, half-width column"),
+                width={"size": 6, "offset": 3},
+            )
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    html.Div("The last of three columns"),
+                    width={"size": 3, "order": "last", "offset": 1},
+                ),
+                dbc.Col(
+                    html.Div("The first of three columns"),
+                    width={"size": 3, "order": 1, "offset": 2},
+                ),
+                dbc.Col(
+                    html.Div("The second of three columns"),
+                    width={"size": 3, "order": 5},
+                ),
+            ]
+        ),
+    ]
+)
+
+content = html.Div(id="page-content", style=CONTENT_STYLE)
+
+app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
+
+
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
+def render_page_content(pathname):
+    if pathname == "/":
+        return html.P("This is the content of the home page!")
+    elif pathname == "/page-1":
+        return html.P("This is the content of page 1. Yay!")
+    elif pathname == "/page-2":
+        return html.P("Oh cool, this is page 2!")
+    elif pathname == "/page-3":
+        return row
+    # If the user tries to reach a different page, return a 404 message
+    return dbc.Jumbotron(
+        [
+            html.H1("404: Not found", className="text-danger"),
+            html.Hr(),
+            html.P(f"The pathname {pathname} was not recognised..."),
+        ]
+    )
+
 
 if __name__ == "__main__":
-    # mongodb connection
-    CONNECTION_STRING = f"mongodb+srv://{account}:{password}@getdata.dzc20.mongodb.net/getdata?retryWrites=true&w=majority"
-    client = MongoClient(CONNECTION_STRING, tls=True, tlsAllowInvalidCertificates=True)
-    db = client.getdata
-    collection = db.bb
-    app = Dash(__name__)
-
-    df = []
-
-    app.layout = html.Div([
-        html.H4('Simple interactive table'),
-        html.P(id='table_out'),
-        dash_table.DataTable(
-            id='table',
-            columns=[{"name": i, "id": i}
-                     for i in df.columns],
-            data=df.to_dict('records'),
-            style_cell=dict(textAlign='left'),
-            style_header=dict(backgroundColor="paleturquoise"),
-            style_data=dict(backgroundColor="lavender")
-        ),
-    ])
-
-
-    @app.callback(
-        Output('table_out', 'children'),
-        Input('table', 'active_cell'))
-    def update_graphs(active_cell):
-        if active_cell:
-            cell_data = df.iloc[active_cell['row']][active_cell['column_id']]
-            return f"Data: \"{cell_data}\" from table cell: {active_cell}"
-        return "Click the table"
-
-
     app.run_server(debug=True)
-
-
