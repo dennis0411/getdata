@@ -93,11 +93,13 @@ app.layout = html.Div([
     ),
     html.Div(id='output-container-date-picker-range'),
     dcc.Graph(id="graph3"),
-    dcc.Dropdown(
-        id="dropdown-rate-hike",
-        options=['Sector'],
-        value='Sector',
-        clearable=False,
+    dcc.Input(
+        id="input-rate-hike",
+        value=None,
+        type='number',
+        max=0,
+        step=0.1,
+        placeholder="Max Drowdown Limit"
     ),
     dcc.Graph(id="graph-rate-hike"),
 ])
@@ -285,7 +287,7 @@ def write_performance(input, start_date, end_date):
 
 @app.callback(
     Output("graph-rate-hike", "figure"),
-    Input("dropdown-rate-hike", "value"),
+    Input("input-rate-hike", "value"),
 )
 def update_rate_hike(value):
     # data
@@ -294,17 +296,10 @@ def update_rate_hike(value):
     data = pd.DataFrame(result['data'])
     data = data.dropna()
 
-    # hover_text
-    hover_text = []
-    for index, row in data.iterrows():
-        hover_text.append((f"Symbol : {row['Symbol']}<br>" +
-                           f"Sector : {row['Sector']}<br>" +
-                           f"Total Return: {row['total_return']:.2%}<br>" +
-                           f"Mdd: {row['max_drowdown']:.2%}<br>"))
-    data['hover_text'] = hover_text
+    data = data[data['max_drowdown'] > value] if value != None else data
 
     # fig
-    fig = px.scatter(data[["max_drowdown", "total_return", value]], x="max_drowdown", y="total_return", color=value)
+    fig = px.scatter(data, x="max_drowdown", y="total_return", color="Sector", hover_name='Symbol')
 
     fig.update_layout(title=f'Performance when Rate Hike',
                       xaxis=dict(title='max_drowdown',
