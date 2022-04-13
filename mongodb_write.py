@@ -10,6 +10,8 @@ from finvizfinance.screener.overview import Overview
 from pymongo import MongoClient
 from warnings import simplefilter
 import datetime
+import requests
+import ffn
 import yfinance as yf  # Yahoo Finance python API
 
 # 列印用
@@ -70,85 +72,68 @@ def write_bb(file):
     print(f'write_bb total time: {end - start} seconds')
 
 
+def write_ticker_with_sector(name):
+    start = time.time()
+    df = pd.DataFrame(downloadstocklist_from_slickcharts())
 
-# def write_news():
-#     start = time.time()
-#     db = client.getdata
-#     collection = db.bb
-#
-#     self.url = "https://news.cnyes.com"
-#     self.news_url = {"us_stock": "/news/cat/us_stock",
-#                      "world_stock": "/news/cat/wd_stock",
-#                      "eu_asia_stock": "/news/cat/eu_asia_stock",
-#                      "taiwan_stock": "/news/cat/tw_stock",
-#                      "china_stock": "/news/cat/cn_stock",
-#                      "crypto": "/news/cat/bc",
-#                      "currency": "/news/cat/forex",
-#                      "futures": "/news/cat/future",
-#                      }
-#     self.news_data = pd.DataFrame()
-#
-# def get_url_list(self):
-#     url_list = []
-#     market_list = []
-#     for submarket in self.news_url.keys():
-#         target_url = self.url + self.news_url.get(submarket)
-#         r = requests.get(target_url)
-#         soup = BeautifulSoup(r.text, 'html.parser')
-#         for tag in soup.find_all(class_="_1Zdp"):
-#             href = tag.get('href')
-#             link = self.url + href
-#             url_list.append(link)
-#             market_list.append(submarket)
-#     self.news_data["market"] = market_list
-#
-#     return url_list
-#
-# def download_data(self, target_url):
-#     r = requests.get(target_url)
-#     soup = BeautifulSoup(r.text, 'html.parser')
-#     news = " "
-#     tag = soup.find('time')
-#     datetime = tag.text.split(' ')
-#     t = datetime[1]
-#     d = datetime[0]
-#     source = 'cnyes'
-#     title = soup.h1.text
-#
-#     for sub_tag in soup.find(class_="_1UuP"):
-#         for p in sub_tag.find_all('p'):
-#             a = p.text
-#             news += a
-#
-#     data = {"target_url": target_url,
-#             "time": t,
-#             "date": d,
-#             "source": source,
-#             "title": title,
-#             "news": news,
-#             "link": target_url,
-#             "market":}
-#
-# def multi(self, url_list):
-#     threads = []
-#     for target_url in url_list:
-#         threads.append(threading.Thread(target=self.download_data, args=(target_url,)))
-#
-#     for thread in threads:
-#         thread.start()
-#
-#     for thread in threads:
-#         thread.join()
-#
-# def write_db(self):
-#     print(f'Loading data from cnyes')
-#     list = self.get_url_list()
-#     self.multi(list)
+    for symbol in df["Symbol"]:
+        try:
+            stock = finvizfinance(symbol)
+            stock_fundament = stock.ticker_fundament()
+            sector = stock_fundament['Sector']
+            df.loc[df[df['Symbol'] == symbol].index, 'Sector'] = sector
+        except:
+            pass
+    df = df.dropna()
+    data = json.loads(df.to_json())
+    db = client.getdata
+    collection = db.ticker
+    collection.insert_one({'name': name, 'date': datetime.date.today().strftime("%Y/%m/%d"), 'data': data})
+    end = time.time()
+    print(f'write_ticker_with_sector total time: {end - start} seconds')
 
+
+def downloadstocklist_from_slickcharts():
+    url = 'https://www.slickcharts.com/sp500'
+    headers = {
+        "User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'}
+    request = requests.get(url, headers=headers)
+    data = pd.read_html(request.text)[0]
+    stk_list = data.Symbol.apply(lambda x: x.replace('.', '-'))  # 用 replace 將符號進行替換
+    return stk_list
+
+
+def write_return_mdd(name, start_date, end_date):
+    start = time.time()
+    db = client.getdata
+    collection = db.ticker
+    result = collection.find_one({'name': 'SPX'})
+    data = pd.DataFrame(result['data'])
+    data = data.dropna()
+    for symbol in data['Symbol']:
+        try:
+            data.loc[data[data['Symbol'] == symbol].index, 'total_return'] = ffn.get(symbol, start=start_date,
+                                                                                     end=end_date).calc_total_return().values
+            data.loc[data[data['Symbol'] == symbol].index, 'max_drowdown'] = ffn.get(symbol, start=start_date,
+                                                                                     end=end_date).calc_max_drawdown().values
+        except:
+            pass
+    df = data.dropna()
+    print(df)
+    data = json.loads(df.to_json())
+    collection.insert_one({'name': name, 'date': datetime.date.today().strftime("%Y/%m/%d"), 'data': data})
+    end = time.time()
+    print(f'write_return_mdd total time: {end - start} seconds')
 
 
 if __name__ == "__main__":
-    write_bb('data.csv')
+    # write_bb('data.csv')
+    # write_ticker_with_sector('SPX')
+    start_date = '2015-12-15'
+    end_date = '2016-03-31'
+    name = 'rate hike'
+    write_return_mdd(name, start_date, end_date)
+
     # df = pd.read_csv('Ticker.csv')
     # df = df.dropna()
     # tickers = list(df.Ticker[:])

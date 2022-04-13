@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 from matplotlib import dates as mdates
 from matplotlib import ticker as mticker
 import mplfinance as mpf
+from finvizfinance.quote import finvizfinance
+from finvizfinance.insider import Insider
+from finvizfinance.news import News
+from finvizfinance.screener.overview import Overview
 from matplotlib.dates import DateFormatter
 import datetime as dt
 import requests
@@ -23,7 +27,6 @@ def downloadstocklist_from_slickcharts(url, headers):
     request = requests.get(url, headers=headers)
     data = pd.read_html(request.text)[0]
     stk_list = data.Symbol.apply(lambda x: x.replace('.', '-'))  # 用 replace 將符號進行替換
-    print(data)
     return stk_list
 
 
@@ -158,7 +161,16 @@ if __name__ == '__main__':
     startdate = '2018-01-04'
     enddate = '2022-03-28'
     interval = '1d'
-    print(historyprice(ticker, startdate, enddate, interval))
-    print(tickerrec(ticker, startdate, enddate))
-    print(yf.Ticker(ticker).financials.index)
+    df = pd.DataFrame(downloadstocklist_from_slickcharts(url, headers))
+    print(df)
+    for symbol in df["Symbol"] :
+        try :
+            stock = finvizfinance(symbol)
+            stock_fundament = stock.ticker_fundament()
+            sector = stock_fundament['Sector']
+            df.loc[df[df['Symbol'] == symbol].index, 'Sector'] = sector
+        except:
+            pass
+    print(df)
+
 

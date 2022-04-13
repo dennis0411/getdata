@@ -26,11 +26,11 @@ simplefilter(action='ignore', category=FutureWarning)
 
 
 # Quote
-stock = finvizfinance('TSLA')
+stock = finvizfinance('BLK')
 
 # Fundament
 stock_fundament = stock.ticker_fundament()
-print(stock_fundament)
+print(stock_fundament['Sector'])
 
 # Description
 stock_description = stock.ticker_description()
@@ -63,8 +63,8 @@ filters_dict = {'Market Cap.': '+Small (over $300mln)'
 #                 'Price': 'Over $10',
 #                 'RSI (14)': "Oversold (40)"}
 foverview.set_filter(filters_dict=filters_dict)
-df = foverview.screener_view()
-print(df)
-df.to_csv('over300mln')
+# df = foverview.screener_view()
+# print(df)
+# df.to_csv('over300mln')
 
 

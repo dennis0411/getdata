@@ -6,6 +6,7 @@ from finvizfinance.quote import finvizfinance
 from finvizfinance.insider import Insider
 from finvizfinance.news import News
 from finvizfinance.screener.overview import Overview
+import ffn
 from pymongo import MongoClient
 from warnings import simplefilter
 
@@ -40,14 +41,23 @@ client = MongoClient(CONNECTION_STRING, tls=True, tlsAllowInvalidCertificates=Tr
 # for i in result2:
 #     print(i['Market Cap'])
 
+# db = client.getdata
+# collection = db.bb
+# result = collection.find_one({'name' : 'spx'})
+# data = pd.DataFrame(result['data'])
+# data = data.dropna()
+# data = data[['總資本支出成長率', 'P/B', '現金比率', 'P/S', '總投入資本營運報酬率', '普通股權益報酬率', '總債務/總資產', '毛利率', '獲利率']].tail(30)
+# data = data.drop(data[data['總資本支出成長率'] == "nodata"].index)
+# print(data)
+
+
 db = client.getdata
-collection = db.bb
-result = collection.find_one({'name' : 'spx'})
+collection = db.ticker
+result = collection.find_one({'name' : 'rate hike'})
 data = pd.DataFrame(result['data'])
 data = data.dropna()
-data = data[['總資本支出成長率', 'P/B', '現金比率', 'P/S', '總投入資本營運報酬率', '普通股權益報酬率', '總債務/總資產', '毛利率', '獲利率']].tail(30)
-data = data.drop(data[data['總資本支出成長率'] == "nodata"].index)
 print(data)
+
 
 
 
