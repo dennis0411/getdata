@@ -110,32 +110,29 @@ app.layout = html.Div([
     Input("input", "value"))
 def write_financial(input):
     data = yf.Ticker(input).financials.T.rename_axis('Date').reset_index()
+    print(data['Date'])
+    print(type(data['Date']))
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=data['Date'],
-                         y=data['Total Revenue'],
-                         name='營收',
-                         marker=dict(color='#38A67C',
-                                     )))
-    fig.add_trace(go.Bar(x=data['Date'],
-                         y=data['Gross Profit'],
-                         name='毛利',
-                         marker=dict(color='#006FA6',
-                                     )))
-    fig.add_trace(go.Bar(x=data['Date'],
-                         y=data['Net Income'],
-                         name='淨利',
-                         marker=dict(color='#CCCCCC',
-                                     )))
+    fig.add_trace(go.Scatter(x=data['Date'].astype(str),
+                             y=data['Total Revenue'],
+                             name='營收',
+                             marker=dict(color='#38A67C', )))
+    fig.add_trace(go.Scatter(x=data['Date'].astype(str),
+                             y=data['Gross Profit'],
+                             name='毛利',
+                             marker=dict(color='#006FA6', )))
+    fig.add_trace(go.Scatter(x=data['Date'].astype(str),
+                             y=data['Net Income'],
+                             name='淨利',
+                             marker=dict(color='#CCCCCC', )))
     fig.update_layout(title=f'{input} financial',
+                      hovermode='x',
                       xaxis=dict(gridcolor='white',
-                                 gridwidth=2,
-                                 ),
+                                 gridwidth=2, ),
                       yaxis=dict(gridcolor='white',
-                                 gridwidth=2,
-                                 ),
+                                 gridwidth=2, ),
                       paper_bgcolor='rgb(243, 243, 243)',
-                      plot_bgcolor='rgb(243, 243, 243)',
-                      )
+                      plot_bgcolor='rgb(243, 243, 243)', )
     fig.update_layout(autotypenumbers='convert types')
 
     return fig
@@ -279,6 +276,7 @@ def write_performance(input, start_date, end_date):
                       yaxis=dict(gridcolor='white',
                                  gridwidth=2,
                                  ),
+                      hovermode='x',
                       paper_bgcolor='rgb(243, 243, 243)',
                       plot_bgcolor='rgb(243, 243, 243)',
                       )
